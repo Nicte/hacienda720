@@ -18,9 +18,12 @@ from mintos import (
 )
 
 
+BLOCK_LENGTH = 500
+
+
 def parse_720_header(line):
     """Extract n_entries and total_amount_cents from first line of .720 file."""
-    m = re.search(r"7200000000000\s+(\d{22})\s+(\d{17})", line)
+    m = re.search(r"720\d{10}\s+(\d{22})\s+(\d{17})", line)
     if not m:
         return None, None
     n_entries = int(m.group(1))
@@ -77,6 +80,28 @@ def build_expected_records(current, previous):
     return records
 
 
+def block_length_errors(lines):
+    """Return human-readable errors for lines that are not exactly BLOCK_LENGTH chars."""
+    errors = []
+    bad = []
+    for idx, raw_line in enumerate(lines, start=1):
+        line = raw_line.rstrip("\r\n")
+        if len(line) != BLOCK_LENGTH:
+            bad.append((idx, len(line)))
+
+    if bad:
+        sample = ", ".join(
+            f"line {line_no}: {line_len}" for line_no, line_len in bad[:10]
+        )
+        suffix = "" if len(bad) <= 10 else f" ... (+{len(bad) - 10} more)"
+        errors.append(
+            f"Invalid block length: expected {BLOCK_LENGTH} chars. "
+            f"Found {len(bad)} malformed line(s): {sample}{suffix}"
+        )
+
+    return errors
+
+
 def validate():
     input_dir = Path(INPUT_DIR)
     output_path = Path(OUTPUT_DIR) / OUTPUT_FILENAME
@@ -100,9 +125,21 @@ def validate():
         print("Error: Output file is empty.")
         sys.exit(1)
 
+    errors = []
+    errors.extend(block_length_errors(lines))
+
     n_entries_file, total_cents_file = parse_720_header(lines[0])
     if n_entries_file is None:
-        print("Error: Could not parse header line of .720 file.")
+        header_len = len(lines[0].rstrip("\r\n"))
+        errors.append(
+            "Could not parse header line of .720 file. "
+            f"Header length is {header_len} (expected {BLOCK_LENGTH})."
+        )
+
+    if errors:
+        print("Validation FAILED:")
+        for e in errors:
+            print("  -", e)
         sys.exit(1)
 
     data_lines = [line_text for line_text in lines[1:] if line_text.startswith("2")]
@@ -117,7 +154,6 @@ def validate():
 
     sum_data_cents = sum(r["amount_cents"] for r in parsed_records)
 
-    errors = []
     if unparsable_data_lines:
         errors.append(
             f"Found {unparsable_data_lines} data lines that could not be parsed"

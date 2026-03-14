@@ -33,6 +33,10 @@ CURRENT_YEAR = int(os.getenv("CURRENT_YEAR", "2025"))
 PREVIOUS_YEAR = int(os.getenv("PREVIOUS_YEAR", "2024"))
 OUTPUT_FILENAME = os.getenv("OUTPUT_FILENAME", "modelo_720.720")
 CSV_DELIMITER = os.getenv("CSV_DELIMITER", ",")  # ";" o "," según cómo exportes
+# Número de justificante: 13 dígitos, debe empezar por 720 y no ser todo ceros
+# cuando se presenta por fichero (TGVI Online). Ej: 7202025000001
+JUSTIFICANTE = os.getenv("JUSTIFICANTE", f"720{CURRENT_YEAR}000001")
+
 
 def _require_env(key: str) -> str:
     value = os.getenv(key)
@@ -350,8 +354,8 @@ def load_assets_by_year(input_dir):
 
 # --- 720 file format ---
 YEAR_STR = str(CURRENT_YEAR)
-LINE_1 = "1720{YEAR}{DNI}{NAME:40}T{PHONE}{NAME:40}7200000000000  {n_entries:0>22} {total_amount_cents:0>17.0f} 00000000000000000                                                                                                                                                                                                                                                                                                                                \n"
-LINE_N = "2720{YEAR}{DNI}{DNI}         {NAME:40}1                         V2                         LV1{isin}                                              {issuer_name:24}                 {issuer_registration_number}                                                                                                                                                                           LV00000000{operation}00000000 {amount_cents:0>14.0f} 00000000000000A{n_values_cents:0>12.0f} 10000                    \n"
+LINE_1 = "1720{YEAR}{DNI}{NAME:40.40}T{PHONE}{NAME:40.40}{JUSTIFICANTE:13.13}  {n_entries:0>22} {total_amount_cents:0>17.0f} 00000000000000000                                                                                                                                                                                                                                                                                                                                \n"
+LINE_N = "2720{YEAR}{DNI}{DNI}         {NAME:40.40}1                         V2                         LV1{isin:12.12}                                              {issuer_name:24.24}                 {issuer_registration_number:11.11}                                                                                                                                                                           LV00000000{operation}00000000 {amount_cents:0>14.0f} 00000000000000A{n_values_cents:0>12.0f} 10000                    \n"
 
 
 def write_720_file_from_assets(filepath, assets, assets_previous_exercise=None):
@@ -403,6 +407,7 @@ def write_720_file_from_assets(filepath, assets, assets_previous_exercise=None):
             DNI=DNI,
             NAME=NAME,
             PHONE=PHONE,
+            JUSTIFICANTE=JUSTIFICANTE,
             n_entries=n_entries,
             total_amount_cents=total_amount_cents,
         )
