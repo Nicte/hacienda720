@@ -34,9 +34,20 @@ PREVIOUS_YEAR = int(os.getenv("PREVIOUS_YEAR", "2024"))
 OUTPUT_FILENAME = os.getenv("OUTPUT_FILENAME", "modelo_720.720")
 CSV_DELIMITER = os.getenv("CSV_DELIMITER", ",")  # ";" o "," según cómo exportes
 
-NAME = os.environ["NAME"]
-DNI = os.environ["DNI"]
-PHONE = os.environ["PHONE"]
+def _require_env(key: str) -> str:
+    value = os.getenv(key)
+    if not value:
+        raise SystemExit(
+            f"Error: variable de entorno '{key}' no definida.\n"
+            "Copia .env.example a .env y rellena tus datos:\n"
+            "  cp .env.example .env"
+        )
+    return value
+
+
+NAME = _require_env("NAME")
+DNI = _require_env("DNI")
+PHONE = _require_env("PHONE")
 ## FIN CONFIGURACIÓN
 
 
