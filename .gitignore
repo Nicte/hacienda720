@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+output/*.720
+# Keep input/ in git but ignore all contents (avoid committing personal data)
+input/*
+!input/.gitkeep
+docs/*
+.cursor/
+.DS_Store
