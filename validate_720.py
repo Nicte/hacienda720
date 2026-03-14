@@ -121,7 +121,6 @@ def validate():
     current, previous = load_assets_by_year(input_dir)
     expected_records = build_expected_records(current, previous)
     expected_entries = len(expected_records)
-    expected_total_cents = sum(r["amount_cents"] for r in expected_records)
 
     # Parse output file
     with open(output_path, "r", encoding="utf-8") as f:
