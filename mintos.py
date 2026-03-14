@@ -31,7 +31,7 @@ INPUT_DIR = os.getenv("INPUT_DIR", "input")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "output")
 CURRENT_YEAR = int(os.getenv("CURRENT_YEAR", "2025"))
 PREVIOUS_YEAR = int(os.getenv("PREVIOUS_YEAR", "2024"))
-OUTPUT_FILENAME = os.getenv("OUTPUT_FILENAME", "modelo_720.720")
+OUTPUT_FILENAME = os.getenv("OUTPUT_FILENAME", f"modelo_720_{CURRENT_YEAR}.720")
 CSV_DELIMITER = os.getenv("CSV_DELIMITER", ",")  # ";" o "," según cómo exportes
 # Número de justificante: 13 dígitos, debe empezar por 720 y no ser todo ceros
 # cuando se presenta por fichero (TGVI Online). Ej: 7202025000001

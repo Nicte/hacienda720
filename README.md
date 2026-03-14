@@ -70,7 +70,7 @@ Para **bonds**, solo se tienen en cuenta filas con `Type = Investment` (ignorand
 python mintos.py
 ```
 
-Se creará la carpeta de salida si no existe y el archivo se escribirá en `OUTPUT_DIR/OUTPUT_FILENAME`.
+Se creará la carpeta de salida si no existe y el archivo se escribirá en `OUTPUT_DIR/modelo_720_<CURRENT_YEAR>.720` (o en `OUTPUT_DIR/OUTPUT_FILENAME` si defines `OUTPUT_FILENAME`).
 
 ### 4. Validar
 
