@@ -1,9 +1,13 @@
+import os
 import re
 from csv import DictReader
 from decimal import Decimal
 from pathlib import Path
 
 import openpyxl
+from dotenv import load_dotenv
+
+load_dotenv()
 
 OPERATION_ACQUISITION = "A"
 OPERATION_MODIFICATION = "M"
@@ -22,17 +26,17 @@ ISSUER_NAMES_TO_REGISTRATION_NUMBERS = {
     "SIA Mintos Finance No.49": "40203515541",
 }
 
-## CONFIGURACIÓN – cambiar con tus datos
-INPUT_DIR = "input"
-OUTPUT_DIR = "output"
-CURRENT_YEAR = 2025
-PREVIOUS_YEAR = 2024
-OUTPUT_FILENAME = "modelo_720.720"
-CSV_DELIMITER = ","  # ";" o "," según cómo exportes
+## CONFIGURACIÓN – cambiar en el archivo .env (ver .env.example)
+INPUT_DIR = os.getenv("INPUT_DIR", "input")
+OUTPUT_DIR = os.getenv("OUTPUT_DIR", "output")
+CURRENT_YEAR = int(os.getenv("CURRENT_YEAR", "2025"))
+PREVIOUS_YEAR = int(os.getenv("PREVIOUS_YEAR", "2024"))
+OUTPUT_FILENAME = os.getenv("OUTPUT_FILENAME", "modelo_720.720")
+CSV_DELIMITER = os.getenv("CSV_DELIMITER", ",")  # ";" o "," según cómo exportes
 
-NAME = "APELLIDO1 APELLIDO2 NOMBRE"
-DNI = "21928208P"
-PHONE = "600112233"
+NAME = os.environ["NAME"]
+DNI = os.environ["DNI"]
+PHONE = os.environ["PHONE"]
 ## FIN CONFIGURACIÓN
 
 

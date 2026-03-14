@@ -13,13 +13,26 @@ Utilidades para generar el archivo de importación del Modelo 720 (declaración 
 
 ### 1. Configuración
 
-Edita la sección de configuración al inicio de `mintos.py`:
+Copia el archivo de ejemplo y rellena tus datos:
 
-- **INPUT_DIR**: carpeta donde pondrás los archivos de Mintos (Excel o CSV).
-- **OUTPUT_DIR**: carpeta donde se generará el archivo `.720`.
-- **CURRENT_YEAR** / **PREVIOUS_YEAR**: año a declarar y año anterior (para detectar qué archivos son de cada ejercicio).
-- **OUTPUT_FILENAME**: nombre del archivo generado (p. ej. `modelo_720.720`).
-- **NAME**, **DNI**, **PHONE**: tus datos para el formulario.
+```bash
+cp .env.example .env
+```
+
+Abre `.env` y edita los valores:
+
+```ini
+# Datos personales (obligatorios)
+NAME=APELLIDO1 APELLIDO2 NOMBRE
+DNI=12345678X
+PHONE=600000000
+
+# Años a declarar
+CURRENT_YEAR=2025
+PREVIOUS_YEAR=2024
+```
+
+El archivo `.env` está en `.gitignore` y nunca se sube al repositorio. Los valores opcionales (`INPUT_DIR`, `OUTPUT_DIR`, etc.) tienen valores por defecto y solo necesitas incluirlos si quieres cambiarlos.
 
 ### 2. Archivos de entrada
 

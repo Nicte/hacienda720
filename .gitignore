@@ -8,3 +8,5 @@ input/*
 docs/*
 .cursor/
 .DS_Store
+# Personal data – never commit this
+.env
