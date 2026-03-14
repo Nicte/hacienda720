@@ -27,7 +27,28 @@ Edita la sección de configuración al inicio de `mintos.py`:
 - Coloca ahí **todos** los exports de Mintos del año a declarar y del año anterior:
   - **Año actual**: archivos cuyo nombre contenga el año a declarar (p. ej. `Mintos 2025 Loans.xlsx`, `Bonds 2025.xlsx`).
   - **Año anterior** (opcional): archivos con el año anterior (p. ej. `Mintos 2024 ...`) para marcar altas/bajas/modificaciones.
-- El script acepta **Excel** (`.xlsx`, `.xls`) y **CSV**. Detecta solo si es “loans” (columna *Outstanding investments LOC*) o “bonds” (columna *Amount* + *ISIN*).
+- El script acepta **Excel** (`.xlsx`, `.xls`) y **CSV**.
+- Los nombres de columnas se comparan **sin distinguir mayúsculas/minúsculas**.
+- Puede haber columnas extra, pero estas son obligatorias:
+
+#### Formato esperado: Loans
+
+- `Issuer name`
+- `ISIN`
+- `Issuer Registration number`
+- `Outstanding investments LOC`
+
+#### Formato esperado: Bonds
+
+- `Issuer name`
+- `ISIN`
+- `Issuer Registration number`
+- `Amount`
+- `Type`
+
+Para **bonds**, solo se tienen en cuenta filas con `Type = Investment` (ignorando mayúsculas/minúsculas). El importe que se usa es `abs(Amount)` para evitar que el signo del export distorsione el total declarado.
+
+- Si falta alguna columna obligatoria, el script se detiene y muestra un error con el detalle por archivo.
 - Si exportas CSV: mantén todos los decimales (suelen ser 6) y un formato de número válido (español (12.345,67), ingles (12,345.67) o estandar (12345.67)). En `mintos.py` puedes cambiar `CSV_DELIMITER` a `","` o `";"` según tu exportación.
 
 ### 3. Generar el archivo .720
@@ -54,5 +75,5 @@ Importa el archivo `.720` en la herramienta web de la AEAT para presentar el Mod
 
 ## Notas
 
-- **Bonds**: el export de bonds de Mintos no trae *Issuer name* ni *Issuer registration number*. En `mintos.py` está el diccionario `BOND_ISIN_TO_ISSUER` para indicar esos datos por ISIN (añade los que uses y, si hace falta, el número de registro).
-- Los activos con saldo 0 no se incluyen. Los bonds se agregan por ISIN sumando la columna *Amount* (solo se declaran con saldo total &gt; 0).
+- Los activos con saldo 0 no se incluyen.
+- En bonds se agregan únicamente las filas de tipo `Investment`, agrupadas por ISIN. Las filas que no son `Investment` (intereses, pagos, etc.) se ignoran para el cálculo.
