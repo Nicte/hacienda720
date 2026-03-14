@@ -32,18 +32,24 @@ def parse_720_header(line):
 
 
 def parse_720_data_line(line):
-    """Extract (isin, operation, amount_cents) from a data line. Returns None if not parsed."""
-    m = re.search(
-        r"LV1([A-Z0-9]{12}).*?LV00000000([ACM])00000000\s+(\d{14})",
-        line,
-    )
-    if not m:
-        return None
-    return {
-        "isin": m.group(1),
-        "operation": m.group(2),
-        "amount_cents": int(m.group(3)),
-    }
+    """Extract (isin, operation, amount_cents) from a data line. Returns None if not parsed.
+
+    Handles both Mintos LV-prefix records and manually added records with other country codes.
+    For non-LV records, isin is set to None (they are counted but not matched against input).
+    """
+    # LV bonds/loans (Mintos)
+    m = re.search(r"LV1([A-Z0-9]{12}).*?LV00000000([ACM])00000000\s+(\d{14})", line)
+    if m:
+        return {
+            "isin": m.group(1),
+            "operation": m.group(2),
+            "amount_cents": int(m.group(3)),
+        }
+    # Manually added records with other country codes (e.g. US stocks)
+    m = re.search(r"[A-Z]{2}00000000([ACM])00000000\s+(\d{14})", line)
+    if m:
+        return {"isin": None, "operation": m.group(1), "amount_cents": int(m.group(2))}
+    return None
 
 
 def build_expected_records(current, previous):
@@ -154,40 +160,38 @@ def validate():
 
     sum_data_cents = sum(r["amount_cents"] for r in parsed_records)
 
+    manual_records = [r for r in parsed_records if r["isin"] is None]
+    mintos_records = [r for r in parsed_records if r["isin"] is not None]
+
     if unparsable_data_lines:
         errors.append(
             f"Found {unparsable_data_lines} data lines that could not be parsed"
         )
+    # Header line count must match actual data lines (always)
     if len(data_lines) != n_entries_file:
         errors.append(
             f"Header entry count ({n_entries_file}) does not match number of data lines ({len(data_lines)})"
         )
-    if expected_entries != n_entries_file:
+    # File may have MORE records than Mintos-derived (manual extras); fewer is always an error
+    if n_entries_file < expected_entries:
         errors.append(
-            f"Entry count: expected {expected_entries} (from input), file has {n_entries_file}"
+            f"Entry count: file has {n_entries_file} records but {expected_entries} are expected from input"
         )
-    if expected_total_cents != total_cents_file:
-        errors.append(
-            f"Total amount (cents): expected {expected_total_cents}, file header has {total_cents_file}"
-        )
+    # Sum of ALL data lines must match header total (format compliance)
     if sum_data_cents != total_cents_file:
         errors.append(
-            f"Total amount: sum of data lines ({sum_data_cents}) does not match header ({total_cents_file})"
+            f"Header total ({total_cents_file} cents) does not match sum of data lines ({sum_data_cents} cents)"
         )
-
+    # All Mintos-derived records must be present; extra (manual) records are fine
     expected_counter = Counter(
         (r["isin"], r["operation"], r["amount_cents"]) for r in expected_records
     )
-    file_counter = Counter(
-        (r["isin"], r["operation"], r["amount_cents"]) for r in parsed_records
+    file_mintos_counter = Counter(
+        (r["isin"], r["operation"], r["amount_cents"]) for r in mintos_records
     )
-    if expected_counter != file_counter:
-        missing = list((expected_counter - file_counter).elements())[:5]
-        extra = list((file_counter - expected_counter).elements())[:5]
-        if missing:
-            errors.append(f"Missing expected records (sample): {missing}")
-        if extra:
-            errors.append(f"Unexpected records in file (sample): {extra}")
+    missing = list((expected_counter - file_mintos_counter).elements())[:5]
+    if missing:
+        errors.append(f"Missing Mintos records (sample): {missing}")
 
     if errors:
         print("Validation FAILED:")
@@ -196,9 +200,11 @@ def validate():
         sys.exit(1)
 
     print("Validation OK:")
-    print(f"  Entries: {expected_entries}")
-    print(f"  Total amount (cents): {expected_total_cents}")
-    print(f"  Total amount (EUR):  {expected_total_cents / 100:.2f}")
+    print(
+        f"  Total entries: {n_entries_file} ({expected_entries} from Mintos, {len(manual_records)} manual)"
+    )
+    print(f"  Total amount (cents): {total_cents_file}")
+    print(f"  Total amount (EUR):  {total_cents_file / 100:.2f}")
     op_counts = Counter(r["operation"] for r in parsed_records)
     print(
         "  Operations: "
